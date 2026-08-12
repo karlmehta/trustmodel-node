@@ -49,17 +49,26 @@ const decision = await tm.agp.decide({
 
 ## Telemetry (OTel) — SKU2
 
+Dependency-free, **edge-safe** OTLP export (Node, Deno, Bun, Workers) — no
+`@opentelemetry/*` required. Wrap work in `span()`; traces stream to TrustModel with
+the `trustmodel.agent_id` binding the backend needs.
+
 ```ts
 import { autoInit } from "@trustmodel/sdk/telemetry";
 
-// Auto-instruments openai/anthropic/langchain and streams traces to TrustModel.
-// Forwarder mode if your app already runs OTel; embedded mode otherwise.
-await autoInit({
+const tm = autoInit({
   apiKey: process.env.TRUSTMODEL_API_KEY!,
-  agentId: "my-agent",
+  agentId: "my-agent",     // → trustmodel.agent_id (binds to your agent)
   domain: "general_ai",
 });
+
+const answer = await tm.span("llm.call", async () => callOpenAI(prompt), { model: "gpt-4o" });
+
+await tm.flush();      // send buffered spans (also auto-flushes on a timer + on exit)
 ```
+
+> Automatic instrumentation of openai/anthropic/langchain (OpenInference) is a 0.2
+> follow-up; v0.1 is manual `span()` capture + the dependency-free exporter.
 
 ## Configuration
 

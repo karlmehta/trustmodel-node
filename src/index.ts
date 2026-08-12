@@ -29,4 +29,10 @@ export type {
 
 // Telemetry (OTel) is a subpath export (`@trustmodel/sdk/telemetry`) so the OTel peer
 // deps stay optional for core-eval/AGP users.
-export { autoInit, type AutoInitOptions, type AutoInitResult } from "./telemetry/autoInit.js";
+export {
+  autoInit,
+  otlpTracesUrl,
+  type AutoInitOptions,
+  type Telemetry,
+  type SpanAttributeValue,
+} from "./telemetry/autoInit.js";

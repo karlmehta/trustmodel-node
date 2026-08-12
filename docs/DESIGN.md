@@ -14,7 +14,11 @@
 There is no full TS/Node SDK today — only `@trustmodel/mcp-server` (a protocol adapter)
 and small CLIs. Sophia (and most agent builders) are TypeScript, so the eval/telemetry/AGP
 gap blocks the exact bottom-up developer adoption the SDK exists to drive. The Python SDK
-(`trustmodel` v3.3.2) is the parity target; the MCP server sets the TS conventions.
+(`trustmodel` v3.3.2) is the parity target; the MCP server sets the TS conventions. The
+internal `@sdr-agent/trustmodel` client (built to integrate Sophia) is the reference
+surface — Karl to share; fold it in during slice 2. This doc scopes Karl's three surfaces
+(Eval / Telemetry / AGP); the epic (TRUS-1675) also covers AgentCert + a
+`npx create-trustmodel-agent` scaffolder as later slices.
 
 ## 1a. SDK vs. the MCP server — when a developer uses which
 
@@ -122,6 +126,13 @@ autoInit({ apiKey, agentId, domain, frameworks?, serviceName?, environment?, bas
 - **`flush()`** → `POST /sdk/v1/otel/v1/flush` (`X-API-Key`) + `shutdown()` on process exit.
 - **OTel deps are OPTIONAL** (a `telemetry` peer/optional group), mirroring the Python
   `[telemetry]` extra — the core eval/AGP SDK stays dependency-light.
+- **Edge-runtime path (from the epic):** the OTel Node SDK relies on `async_hooks` context
+  propagation, which is fragile on Deno/Bun/Cloudflare Workers. Provide a second,
+  **dependency-free OTLP/HTTP-JSON exporter** that POSTs spans directly to
+  `/sdk/v1/otel/v1/traces` (no `@opentelemetry/*`) for edge/serverless — it still must
+  stamp `trustmodel.agent_id` (the binding key; omitting it = accepted-but-unregistered,
+  now warned by TRUS-1677). So telemetry has two tiers: full OTel SDK (Node) + a minimal
+  edge exporter. Decide in slice 3.
 
 ### 3.3 AGP / governance (`tm.agp` / `tm.guardrails`)
 - `guardrails.decide({ tool, args, subject?, agentId?, policyName? })` → **Edge first**
@@ -129,6 +140,11 @@ autoInit({ apiKey, agentId, domain, frameworks?, serviceName?, environment?, bas
   returns a normalized `Decision { verdict, ruleId, reason, redactions, ... }`. Honors
   `failMode` ("closed" | "open") when the Edge is unreachable.
 - `agp.boundPolicy(slug)` → `GET /api/v1/guardrails/agents/{slug}/policy/`.
+- **Auth for govern:** per the epic, the guardrails/govern path uses **OAuth
+  client-credentials** (token at `/o/token/`, cached + refreshed), whereas eval / score /
+  cert / OTel use the API key (Bearer for REST, `X-API-Key` for OTLP ingest). The client
+  accepts an `auth` (client-credentials) option alongside `apiKey` — OAuth wiring is
+  slice 4 (or a fast-follow; see §8 Q4).
 - `agp.fleet()` / `agp.trustScore(slug)` → the governed-agent fleet + TrustScore reads
   (consume the identity hub once TRUS-1694 lands; until then the current endpoints).
 

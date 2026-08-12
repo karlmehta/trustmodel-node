@@ -43,7 +43,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pdxlab/trustmodel-node-sdk.git"
+    "url": "git+https://github.com/karlmehta/trustmodel-node.git"
   },
   "homepage": "https://trustmodel.ai/developers",
   "dependencies": {

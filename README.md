@@ -1,0 +1,78 @@
+# @trustmodel/sdk
+
+Official **TypeScript / Node** SDK for [TrustModel](https://trustmodel.ai) — AI trust
+evaluation, OpenTelemetry telemetry, and agent governance (AGP). Parity with the Python
+SDK (`trustmodel` on PyPI) for the three core surfaces.
+
+> **Status: scaffold under review.** Core client (eval / AGP) lands next; telemetry
+> (`autoInit`) is scaffolded. See [`docs/DESIGN.md`](docs/DESIGN.md).
+
+## Install
+
+```bash
+npm install @trustmodel/sdk
+# Telemetry (OTel) is optional — install the OTel peers only if you use autoInit():
+npm install @opentelemetry/api @opentelemetry/sdk-trace-node \
+  @opentelemetry/exporter-trace-otlp-http @opentelemetry/resources \
+  @opentelemetry/semantic-conventions
+```
+
+Requires Node **>= 22.12**.
+
+## Quick start
+
+```ts
+import { TrustModelClient } from "@trustmodel/sdk";
+
+const tm = new TrustModelClient({ apiKey: process.env.TRUSTMODEL_API_KEY });
+
+// Model eval → TrustScore
+const run = await tm.evaluations.create({
+  modelIdentifier: "gpt-4o",
+  vendorIdentifier: "openai",
+});
+
+// Agent eval — one call, no upload dance (inline trace)
+const agentRun = await tm.agentic.evaluate({
+  trace: { goal: "Book a flight", steps: [{ step_type: "final_answer", content: "Booked" }] },
+  agentFramework: "langchain",
+  governedAgent: "my-agent",   // binds the score to the AGP agent
+});
+
+// Governance — gate a tool call
+const decision = await tm.agp.decide({
+  tool: "send_email",
+  args: { to: "ceo@acme.com" },
+  agentId: "my-agent",
+});
+```
+
+## Telemetry (OTel) — SKU2
+
+```ts
+import { autoInit } from "@trustmodel/sdk/telemetry";
+
+// Auto-instruments openai/anthropic/langchain and streams traces to TrustModel.
+// Forwarder mode if your app already runs OTel; embedded mode otherwise.
+await autoInit({
+  apiKey: process.env.TRUSTMODEL_API_KEY!,
+  agentId: "my-agent",
+  domain: "general_ai",
+});
+```
+
+## Configuration
+
+| Option | Env | Default |
+|---|---|---|
+| `apiKey` | `TRUSTMODEL_API_KEY` | — |
+| `baseUrl` | `TRUSTMODEL_BASE_URL` | per `environment` |
+| `environment` | — | `production` (`qa`, `local`) |
+| `organizationId` | `TRUSTMODEL_ORGANIZATION_ID` | — (→ `X-Organization-ID`) |
+| `edgeUrl` | `TRUSTMODEL_EDGE_URL` | — (guardrails Edge) |
+
+Auth is `Authorization: Bearer <apiKey>` — identical to the Python SDK.
+
+## License
+
+See [`LICENSE`](LICENSE). (License is a launch decision — see `docs/DESIGN.md` §2.)

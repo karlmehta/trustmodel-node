@@ -1,0 +1,22 @@
+TrustModel Node SDK License
+
+Copyright (c) 2026 TrustModel
+
+Proprietary. All rights reserved.
+
+This software and associated documentation files (the "SDK") are provided by
+TrustModel for use with the TrustModel platform. Permission to use the SDK is
+granted to TrustModel customers and users solely for the purpose of integrating
+with TrustModel services, subject to the TrustModel Terms of Service.
+
+Redistribution, sublicensing, or use of the SDK other than as expressly permitted
+above requires the prior written consent of TrustModel.
+
+THE SDK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL TRUSTMODEL BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH
+THE SDK OR THE USE OR OTHER DEALINGS IN THE SDK.
+
+NOTE (pre-launch): licensing is an open decision — see docs/DESIGN.md §2 / §8. If the
+SDK ships under MIT for developer adoption, replace this file with the MIT license.

@@ -41,7 +41,7 @@
     "llm"
   ],
   "author": "TrustModel",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/karlmehta/trustmodel-node.git"

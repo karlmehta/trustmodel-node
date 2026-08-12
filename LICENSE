@@ -1,22 +1,21 @@
-TrustModel Node SDK License
+MIT License
 
 Copyright (c) 2026 TrustModel
 
-Proprietary. All rights reserved.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This software and associated documentation files (the "SDK") are provided by
-TrustModel for use with the TrustModel platform. Permission to use the SDK is
-granted to TrustModel customers and users solely for the purpose of integrating
-with TrustModel services, subject to the TrustModel Terms of Service.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-Redistribution, sublicensing, or use of the SDK other than as expressly permitted
-above requires the prior written consent of TrustModel.
-
-THE SDK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL TRUSTMODEL BE LIABLE FOR
-ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH
-THE SDK OR THE USE OR OTHER DEALINGS IN THE SDK.
-
-NOTE (pre-launch): licensing is an open decision — see docs/DESIGN.md §2 / §8. If the
-SDK ships under MIT for developer adoption, replace this file with the MIT license.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

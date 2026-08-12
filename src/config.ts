@@ -43,7 +43,7 @@ export interface ResolvedConfig {
   userAgent: string;
 }
 
-const SDK_VERSION = "0.1.0";
+const SDK_VERSION = "0.2.0";
 
 /** Merge options with env vars and defaults into a resolved config. */
 export function resolveConfig(opts: TrustModelClientOptions = {}): ResolvedConfig {

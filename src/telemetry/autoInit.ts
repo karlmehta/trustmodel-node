@@ -9,8 +9,9 @@
  *  `trustmodel.domain` / `trustmodel.frameworks`) are what the backend's OtelAgent /
  *  identity resolution reads — omitting `trustmodel.agent_id` = accepted-but-unregistered.
  *
- *  Manual capture: wrap any unit of work in `tm.span(name, fn)`. Full auto-instrumentation
- *  of openai/anthropic/langchain via OpenInference is a 0.2 follow-up (instrumentors.ts). */
+ *  Manual capture: wrap any unit of work in `tm.span(name, fn)`. For zero-code automatic
+ *  capture of openai/anthropic/langchain, use `enableAutoInstrumentation()` (instrumentors.ts)
+ *  — the opt-in full-OTel/OpenInference tier. */
 
 import { ENVIRONMENT_URLS, type Environment } from "../config.js";
 import { MissingApiKeyError, TrustModelError } from "../errors.js";
@@ -126,7 +127,7 @@ export function autoInit(opts: AutoInitOptions): Telemetry {
           resource: { attributes: toOtlpAttrs(resourceAttrs) },
           scopeSpans: [
             {
-              scope: { name: "@trustmodel/sdk", version: "0.1.0" },
+              scope: { name: "@trustmodel/sdk", version: "0.2.0" },
               spans: batch.map((s) => ({
                 traceId: s.traceId,
                 spanId: s.spanId,

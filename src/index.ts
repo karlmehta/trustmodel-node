@@ -36,3 +36,9 @@ export {
   type Telemetry,
   type SpanAttributeValue,
 } from "./telemetry/autoInit.js";
+export {
+  enableAutoInstrumentation,
+  KNOWN_INSTRUMENTORS,
+  type AutoInstrumentation,
+  type ModuleLoader,
+} from "./telemetry/instrumentors.js";

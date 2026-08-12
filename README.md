@@ -67,8 +67,30 @@ const answer = await tm.span("llm.call", async () => callOpenAI(prompt), { model
 await tm.flush();      // send buffered spans (also auto-flushes on a timer + on exit)
 ```
 
-> Automatic instrumentation of openai/anthropic/langchain (OpenInference) is a 0.2
-> follow-up; v0.1 is manual `span()` capture + the dependency-free exporter.
+### Automatic instrumentation (openai / anthropic / langchain)
+
+Opt-in, zero-code capture via OpenInference — install the OTel + instrumentor peers, then:
+
+```bash
+npm i @opentelemetry/sdk-trace-node @opentelemetry/sdk-trace-base \
+  @opentelemetry/exporter-trace-otlp-http @opentelemetry/resources @opentelemetry/instrumentation \
+  @arizeai/openinference-instrumentation-openai   # + -langchain / -anthropic as needed
+```
+
+```ts
+import { enableAutoInstrumentation } from "@trustmodel/sdk";
+
+const ai = await enableAutoInstrumentation({
+  apiKey: process.env.TRUSTMODEL_API_KEY!,
+  agentId: "my-agent",
+  domain: "general_ai",
+});
+// Every openai/anthropic call is now traced to TrustModel automatically.
+// ai.installed → the instrumentors that were wired
+```
+
+The **dependency-free** `autoInit()` above needs none of these — it's the edge-safe path.
+`enableAutoInstrumentation()` is the full-OTel path for Node when you want zero-code capture.
 
 ## Configuration
 

@@ -16,6 +16,45 @@ and small CLIs. Sophia (and most agent builders) are TypeScript, so the eval/tel
 gap blocks the exact bottom-up developer adoption the SDK exists to drive. The Python SDK
 (`trustmodel` v3.3.2) is the parity target; the MCP server sets the TS conventions.
 
+## 1a. SDK vs. the MCP server — when a developer uses which
+
+Two distribution paths, **complementary, not either/or**:
+
+- **A — install the SDK (`@trustmodel/sdk`) into your agent's codebase.** A library you
+  `import` and call from your own code; runs **in-process** with your agent.
+- **B — install the MCP client / connect to the TrustModel MCP server
+  (`@trustmodel/mcp-server`, on npm).** Your AI assistant or coding agent (Claude
+  Desktop/Code, Cursor, …) connects to the MCP server and calls TrustModel **as tools**;
+  runs **out-of-process**, model-mediated. (A hosted remote streamable-HTTP MCP endpoint —
+  TRUS-1088 — is the zero-install extreme: point your MCP client at TrustModel, nothing to
+  run locally.)
+
+| | **SDK** `@trustmodel/sdk` (path A) | **MCP server** `@trustmodel/mcp-server` (path B) |
+|---|---|---|
+| Integration | `npm i` + write code | add a server entry to MCP config — **no code change** to the agent |
+| Where it runs | **in your agent's process** | a separate tool process (stdio) or a hosted remote endpoint |
+| Who invokes it | **your code** — deterministic | **the model decides** — agentic / conversational |
+| Best for | production embedding, CI/CD gating, programmatic eval + govern | dev-time & assistant-time: "score this", "evaluate this trace", scan/govern on demand |
+| **Telemetry / OTel (SKU2)** | ✅ `autoInit()` auto-instruments the agent's own openai/anthropic calls **in-process** — the only way to capture live traces | ❌ can't instrument your process; not a telemetry path |
+| **Inline runtime guardrails** | ✅ `agp.decide()` in the tool-call hot path (low latency, fail-open/closed) | ⚠️ `trustmodel_govern` as a model-invoked tool — good for checks, not inline enforcement |
+| Eval (model + agent) | ✅ programmatic | ✅ tool-invoked (`trustmodel_evaluate`, `trustmodel_evaluate_agent`) |
+| Auth | your API key, in your service | key in the MCP host env (or the local **no-key** tools) |
+| Latency / control | in-process, full control | round-trip through the MCP host + the model |
+
+**Rule of thumb**
+- **Building / shipping an agent → the SDK.** Embed eval, always-on OTel telemetry, and
+  inline governance. Telemetry (`autoInit`) and inline guardrails *require* in-process
+  code, so they are **SDK-only** — the MCP server cannot see or instrument your runtime.
+- **Working *on* an agent (IDE / assistant / coding-agent), or ad-hoc checks with zero
+  integration → the MCP server.** Your assistant calls TrustModel tools; nothing to wire
+  into the agent's code.
+- **They compose:** use the MCP server *while developing*, ship the SDK *to production*.
+  The MCP server calls the same TrustModel API the SDK does — and can reuse this SDK
+  internally, so the two stay in lockstep.
+
+One-liner for the docs site: **"Install the SDK to put TrustModel *inside* your agent;
+add the MCP server to put TrustModel *next to* the assistant that builds it."**
+
 ## 2. Package & repo
 
 - **npm:** `@trustmodel/sdk` (scoped — matches `@trustmodel/mcp-server`; the `@trustmodel`

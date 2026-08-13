@@ -1,6 +1,6 @@
 {
   "name": "@trustmodel/sdk",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Official TypeScript/Node SDK for TrustModel \u2014 AI trust evaluation, OTel telemetry, and agent governance (AGP).",
   "type": "module",
   "main": "./dist/index.js",

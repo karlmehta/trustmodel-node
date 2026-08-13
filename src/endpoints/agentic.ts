@@ -7,6 +7,7 @@
 
 import type { HttpTransport } from "../http.js";
 import type { AgenticEvaluation, AgenticTrace } from "../types.js";
+import { TrustModelError } from "../errors.js";
 
 export interface EvaluateAgentParams {
   /** Inline trace (object or array) — the one-call path. Provide this OR `filePath`. */
@@ -27,9 +28,10 @@ export interface EvaluateAgentParams {
 export class AgenticEndpoint {
   constructor(private readonly http: HttpTransport) {}
 
-  /** Evaluate an agent run. Given a `trace`, uploads it (upload-url → PUT → evaluate) and
-   *  evaluates by `file_path` — the flow prod supports today. Metadata (goal / name /
-   *  agent_framework) is derived from the trace root when not passed explicitly. */
+  /** Evaluate an agent run. With a `trace`, sends it INLINE (one call, no upload —
+   *  TRUS-1691); if the gateway doesn't yet accept an inline trace (older deploy → 400),
+   *  falls back to upload-url → PUT → evaluate. Metadata (goal / name / agent_framework)
+   *  is derived from the trace root when not passed explicitly. */
   async evaluate(params: EvaluateAgentParams): Promise<AgenticEvaluation> {
     if (!params.trace && !params.filePath) {
       throw new Error("evaluate() requires either `trace` or `filePath`.");
@@ -41,11 +43,7 @@ export class AgenticEndpoint {
     const agentFramework = params.agentFramework ?? root?.agent_framework ?? "custom";
     if (!goal) throw new Error("A `goal` is required (pass it, or include it in the trace).");
 
-    // Resolve a file_path: use the given one, or upload the inline trace.
-    const filePath = params.filePath ?? (await this.uploadTrace(params.trace!));
-
-    const body: Record<string, unknown> = {
-      file_path: filePath,
+    const meta: Record<string, unknown> = {
       goal,
       name,
       agent_framework: agentFramework,
@@ -55,6 +53,25 @@ export class AgenticEndpoint {
       governed_agent: params.governedAgent,
       trigger_source: params.triggerSource ?? "sdk",
     };
+
+    // Pre-uploaded file — evaluate directly.
+    if (params.filePath) {
+      return this.postEvaluate({ ...meta, file_path: params.filePath });
+    }
+
+    // Inline one-call (preferred). Fall back to upload if the gateway rejects it (400).
+    try {
+      return await this.postEvaluate({ ...meta, trace: params.trace });
+    } catch (err) {
+      if (err instanceof TrustModelError && err.status === 400) {
+        const filePath = await this.uploadTrace(params.trace!);
+        return this.postEvaluate({ ...meta, file_path: filePath });
+      }
+      throw err;
+    }
+  }
+
+  private postEvaluate(body: Record<string, unknown>): Promise<AgenticEvaluation> {
     return this.http.request<AgenticEvaluation>("/sdk/v1/agentic/evaluate/", {
       method: "POST",
       body,

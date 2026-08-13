@@ -31,10 +31,31 @@ Options:
   --agent <slug>       GovernedAgent slug to bind the score to (AGP fleet).
   --framework <name>   Agent framework (default: claude-agent-sdk).
   --dry-run            Print the trace that would be sent; no API call.
+  --verbose            Print the per-dimension breakdown + summary.
   -h, --help           Show this help.
 
 Env: TRUSTMODEL_API_KEY (required unless --dry-run), TRUSTMODEL_GOVERNED_AGENT,
      TRUSTMODEL_BASE_URL, TRUSTMODEL_ORGANIZATION_ID.`;
+
+/** Print a per-dimension breakdown from whatever shape the result carries (defensive). */
+function printBreakdown(res: Record<string, any>): void {
+  const cats =
+    res.category_scores ?? res.categories ?? res.dimension_scores ?? res.scores ?? res.dimensions;
+  if (cats) {
+    const entries: [string, unknown][] = Array.isArray(cats)
+      ? cats.map((c: any) => [c.name ?? c.category ?? c.dimension ?? c.key ?? "?", c.score ?? c.value ?? c])
+      : Object.entries(cats);
+    if (entries.length) {
+      console.log("   Dimensions:");
+      for (const [k, v] of entries) {
+        const val = v && typeof v === "object" ? (v as any).score ?? JSON.stringify(v) : v;
+        console.log(`     • ${k}: ${val}`);
+      }
+    }
+  }
+  const summary = res.summary ?? res.assessment_summary ?? res.overall_summary;
+  if (summary) console.log(`   Summary: ${String(summary).slice(0, 600)}`);
+}
 
 async function evalAgent(): Promise<number> {
   // Resolve the trace: explicit --trace, explicit --run, or auto-detect a recording.
@@ -96,7 +117,9 @@ async function evalAgent(): Promise<number> {
     if (status === "completed" || status === "COMPLETED") {
       const score = res.overall_score ?? res.latest_evaluation?.overall_score;
       console.log(`\n✅ Agent TrustScore: ${score}`);
+      if (res.grade) console.log(`   Grade: ${res.grade}`);
       if (agent) console.log(`   Attached to the AGP fleet for "${agent}".`);
+      if (has("verbose")) printBreakdown(res);
       return 0;
     }
     if (status === "failed" || status === "FAILED") {

@@ -19,6 +19,15 @@ npm install @opentelemetry/api @opentelemetry/sdk-trace-node \
 
 Requires Node **>= 22.12**.
 
+## One-command agent eval (CLI)
+
+```bash
+npm i @trustmodel/sdk
+export TRUSTMODEL_API_KEY=tm-...
+npx trustmodel eval-agent           # auto-detects .codenow/runs recordings → TrustScore
+# npx trustmodel eval-agent --trace trace.json --agent my-agent
+```
+
 ## Quick start
 
 ```ts

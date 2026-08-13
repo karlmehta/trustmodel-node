@@ -42,3 +42,8 @@ export {
   type AutoInstrumentation,
   type ModuleLoader,
 } from "./telemetry/instrumentors.js";
+export {
+  traceFromClaudeAgentRun,
+  traceFromRunFile,
+  findNewestRun,
+} from "./traces/claudeAgent.js";

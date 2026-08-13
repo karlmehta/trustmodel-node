@@ -53,8 +53,14 @@ function printBreakdown(res: Record<string, any>): void {
       }
     }
   }
-  const summary = res.summary ?? res.assessment_summary ?? res.overall_summary;
-  if (summary) console.log(`   Summary: ${String(summary).slice(0, 600)}`);
+  const raw = res.summary ?? res.assessment_summary ?? res.overall_summary;
+  if (raw) {
+    const summary =
+      typeof raw === "string"
+        ? raw
+        : (raw.text ?? raw.overall ?? raw.summary ?? raw.content ?? JSON.stringify(raw));
+    console.log(`   Summary: ${String(summary).slice(0, 800)}`);
+  }
 }
 
 async function evalAgent(): Promise<number> {
@@ -99,7 +105,7 @@ async function evalAgent(): Promise<number> {
   }
   const tm = new TrustModelClient({ apiKey });
 
-  console.log("\n─── Submitting (one call, inline trace) ───");
+  console.log("\n─── Submitting (uploading trace) ───");
   const run = await tm.agentic.evaluate({ trace, agentFramework: framework, governedAgent: agent });
   const id = run.evaluation_run_id;
   console.log(`  ✓ evaluation_run_id: ${id} (${run.status})`);

@@ -1,18 +1,20 @@
 {
   "name": "@trustmodel/sdk",
-  "version": "0.2.0",
-  "description": "Official TypeScript/Node SDK for TrustModel — AI trust evaluation, OTel telemetry, and agent governance (AGP).",
+  "version": "0.2.1",
+  "description": "Official TypeScript/Node SDK for TrustModel \u2014 AI trust evaluation, OTel telemetry, and agent governance (AGP).",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./telemetry": {
       "types": "./dist/telemetry/autoInit.d.ts",
-      "import": "./dist/telemetry/autoInit.js"
+      "import": "./dist/telemetry/autoInit.js",
+      "default": "./dist/telemetry/autoInit.js"
     }
   },
   "files": [

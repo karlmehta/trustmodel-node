@@ -27,28 +27,54 @@ export interface EvaluateAgentParams {
 export class AgenticEndpoint {
   constructor(private readonly http: HttpTransport) {}
 
-  /** Evaluate an agent run. Prefers the inline-trace one-call; uploads only for `filePath`. */
+  /** Evaluate an agent run. Given a `trace`, uploads it (upload-url → PUT → evaluate) and
+   *  evaluates by `file_path` — the flow prod supports today. Metadata (goal / name /
+   *  agent_framework) is derived from the trace root when not passed explicitly. */
   async evaluate(params: EvaluateAgentParams): Promise<AgenticEvaluation> {
     if (!params.trace && !params.filePath) {
-      throw new Error("evaluate() requires either `trace` (inline) or `filePath`.");
+      throw new Error("evaluate() requires either `trace` or `filePath`.");
     }
+
+    const root = Array.isArray(params.trace) ? params.trace[0] : params.trace;
+    const goal = params.goal ?? root?.goal;
+    const name = params.name ?? root?.name ?? "Agent run";
+    const agentFramework = params.agentFramework ?? root?.agent_framework ?? "custom";
+    if (!goal) throw new Error("A `goal` is required (pass it, or include it in the trace).");
+
+    // Resolve a file_path: use the given one, or upload the inline trace.
+    const filePath = params.filePath ?? (await this.uploadTrace(params.trace!));
+
     const body: Record<string, unknown> = {
-      goal: params.goal,
-      name: params.name,
-      agent_framework: params.agentFramework,
+      file_path: filePath,
+      goal,
+      name,
+      agent_framework: agentFramework,
       agent_model: params.agentModel,
       frameworks: params.frameworks,
       control_ids: params.controlIds,
       governed_agent: params.governedAgent,
       trigger_source: params.triggerSource ?? "sdk",
     };
-    if (params.trace) body.trace = params.trace;
-    else body.file_path = params.filePath;
-
     return this.http.request<AgenticEvaluation>("/sdk/v1/agentic/evaluate/", {
       method: "POST",
       body,
     });
+  }
+
+  /** Upload an inline trace and return its stored `file_path` (upload-url → PUT). */
+  private async uploadTrace(trace: AgenticTrace | AgenticTrace[]): Promise<string> {
+    const up = await this.http.request<Record<string, unknown>>(
+      "/sdk/v1/agentic/upload-url/",
+      { method: "POST", body: { file_type: "json" } },
+    );
+    // The backend has used both old/new field names — normalize (matches the MCP client).
+    const signedUrl = (up.signed_url ?? up.url) as string | undefined;
+    const filePath = (up.file_path ?? up.file_name) as string | undefined;
+    if (!signedUrl || !filePath) {
+      throw new Error("upload-url response missing signed_url/file_path.");
+    }
+    await this.http.putSigned(signedUrl, JSON.stringify(trace), "application/json");
+    return filePath;
   }
 
   /** Fetch an agentic evaluation run by id. */
@@ -57,10 +83,4 @@ export class AgenticEndpoint {
       `/sdk/v1/agentic/evaluations/${encodeURIComponent(String(evaluationId))}/`,
     );
   }
-
-  // NOTE (slice 2): large-file upload fallback —
-  //   const { signed_url, file_path } = await http.request("/sdk/v1/agentic/upload-url/", …)
-  //   await http.putSigned(signed_url, JSON.stringify(trace), "application/json")
-  //   return this.evaluate({ filePath: file_path, … })
-  // Wire this once we add streaming/file reads; the inline path covers the common case.
 }

@@ -145,5 +145,9 @@ async function main(): Promise<void> {
 
 main().catch((e) => {
   console.error("\n✗ " + (e?.message ?? String(e)));
+  if (e?.detail !== undefined) {
+    const d = typeof e.detail === "string" ? e.detail : JSON.stringify(e.detail);
+    console.error("  detail: " + d);
+  }
   process.exit(1);
 });
